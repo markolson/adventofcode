@@ -1,4 +1,4 @@
-defmodule AdventOfCode.Day19 do
+defmodule AdventOfCode.Day19.PartOne do
   def process(file, string) do
     data = File.read!(file)
     |> String.strip
@@ -6,28 +6,34 @@ defmodule AdventOfCode.Day19 do
     |> Enum.map(&(String.split(&1, " => ")))
 
     t = string |> String.to_char_list
-    Enum.map(data, fn([k,v]) ->
-      substitute([String.to_char_list(k),String.to_char_list(v)], t)
-    end)
+    Enum.reduce(data, [], fn([k,v], acc) ->
+      acc ++ substitute([String.to_char_list(k),String.to_char_list(v)], t)
+    end) |> Enum.uniq
   end
 
-  def substitute(_, _, []), do: []
-  def substitute([k,v], main_list) do
-    rest = (main_list -- k)
-    IO.inspect [main_list, rest]
+  def substitute([k,v], data) do
+    substitute([k,v], [], data, [])
+  end
+
+  def substitute(_, _, [], results), do: results
+
+  def substitute([k,v], processed, unmatched=[h|t], results) do
     cond do
-      k === Enum.take(main_list,length(k)) ->
-        IO.puts "subbing #{k} | #{(v ++ rest)}"
-        [(v ++ rest)|(v ++substitute([k,v], rest))]
+      k === Enum.take(unmatched,length(k)) ->
+        rest = (unmatched -- k)
+        result = (processed++v++rest)
+        #IO.puts "subbing #{k}->#{v}=#{inspect result} | rest=#{inspect rest} processed=#{inspect processed}"
+        #[(v ++ rest),k,substitute([k,v], rest)]
+        substitute([k,v], List.flatten(processed++[k]), rest, [result|results])
       true ->
-        #IO.puts "no sub for #{hd(main_list)}"
-        [hd(main_list)|substitute([k,v], tl(main_list))]
+        #IO.puts "no sub for #{[h]} | rest=#{inspect t} processed=#{inspect processed}"
+        #[h++substitute([k,v], r)]
+        substitute([k,v], List.flatten(processed++[h]), t, results)
     end
   end
 end
 
 sample = "HOH"
-#full = "CRnCaCaCaSiRnBPTiMgArSiRnSiRnMgArSiRnCaFArTiTiBSiThFYCaFArCaCaSiThCaPBSiThSiThCaCaPTiRnPBSiThRnFArArCaCaSiThCaSiThSiRnMgArCaPTiBPRnFArSiThCaSiRnFArBCaSiRnCaPRnFArPMgYCaFArCaPTiTiTiBPBSiThCaPTiBPBSiRnFArBPBSiRnCaFArBPRnSiRnFArRnSiRnBFArCaFArCaCaCaSiThSiThCaCaPBPTiTiRnFArCaPTiBSiAlArPBCaCaCaCaCaSiRnMgArCaSiThFArThCaSiThCaSiRnCaFYCaSiRnFYFArFArCaSiRnFYFArCaSiRnBPMgArSiThPRnFArCaSiRnFArTiRnSiRnFYFArCaSiRnBFArCaSiRnTiMgArSiThCaSiThCaFArPRnFArSiRnFArTiTiTiTiBCaCaSiRnCaCaFYFArSiThCaPTiBPTiBCaSiThSiRnMgArCaF"
+full = "CRnCaCaCaSiRnBPTiMgArSiRnSiRnMgArSiRnCaFArTiTiBSiThFYCaFArCaCaSiThCaPBSiThSiThCaCaPTiRnPBSiThRnFArArCaCaSiThCaSiThSiRnMgArCaPTiBPRnFArSiThCaSiRnFArBCaSiRnCaPRnFArPMgYCaFArCaPTiTiTiBPBSiThCaPTiBPBSiRnFArBPBSiRnCaFArBPRnSiRnFArRnSiRnBFArCaFArCaCaCaSiThSiThCaCaPBPTiTiRnFArCaPTiBSiAlArPBCaCaCaCaCaSiRnMgArCaSiThFArThCaSiThCaSiRnCaFYCaSiRnFYFArFArCaSiRnFYFArCaSiRnBPMgArSiThPRnFArCaSiRnFArTiRnSiRnFYFArCaSiRnBFArCaSiRnTiMgArSiThCaSiThCaFArPRnFArSiRnFArTiTiTiTiBCaCaSiRnCaCaFYFArSiThCaPTiBPTiBCaSiThSiRnMgArCaF"
 
-IO.inspect AdventOfCode.Day19.process("input/day19.sample", sample)
-#IO.inspect AdventOfCode.Day19.process("input/day19.full", full)
+AdventOfCode.Day19.PartOne.process("input/day19.full", full) |> Enum.count |> IO.inspect
