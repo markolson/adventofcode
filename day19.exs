@@ -33,7 +33,42 @@ defmodule AdventOfCode.Day19.PartOne do
   end
 end
 
-sample = "HOH"
+defmodule AdventOfCode.Day19.PartTwo do
+  def process(file, string) do
+    data = File.read!(file)
+    |> String.strip
+    |> String.split("\n")
+    |> Enum.map(&(List.to_tuple(Enum.reverse(String.split(&1, " => ")))))
+    |> Enum.sort(fn({x,_},{y,_}) -> String.length(x) > String.length(y) end)
+    # now we have an inverse list of substitutions, sorted by length..
+
+    #s = String.reverse(string)
+    run(string,data,0)
+  end
+
+  def replacements(map,string) do
+    Enum.filter(map, fn({find,_}) ->
+      String.contains?(string,find)
+    end)
+  end
+
+  def run("e",_,step) do
+    IO.puts "YASSS #{step}"
+    step
+  end
+  def run(string, map, step) do
+    cond do
+      String.contains?(string, "e") -> nil
+      true ->
+        replacements(map,string) |> Enum.find(fn({from,to}) ->
+          String.replace(string,from,to, global: false) |> run(map, step + 1)
+        end)
+      end
+  end
+end
+
+sample = "HOHOHO"
 full = "CRnCaCaCaSiRnBPTiMgArSiRnSiRnMgArSiRnCaFArTiTiBSiThFYCaFArCaCaSiThCaPBSiThSiThCaCaPTiRnPBSiThRnFArArCaCaSiThCaSiThSiRnMgArCaPTiBPRnFArSiThCaSiRnFArBCaSiRnCaPRnFArPMgYCaFArCaPTiTiTiBPBSiThCaPTiBPBSiRnFArBPBSiRnCaFArBPRnSiRnFArRnSiRnBFArCaFArCaCaCaSiThSiThCaCaPBPTiTiRnFArCaPTiBSiAlArPBCaCaCaCaCaSiRnMgArCaSiThFArThCaSiThCaSiRnCaFYCaSiRnFYFArFArCaSiRnFYFArCaSiRnBPMgArSiThPRnFArCaSiRnFArTiRnSiRnFYFArCaSiRnBFArCaSiRnTiMgArSiThCaSiThCaFArPRnFArSiRnFArTiTiTiTiBCaCaSiRnCaCaFYFArSiThCaPTiBPTiBCaSiThSiRnMgArCaF"
 
-AdventOfCode.Day19.PartOne.process("input/day19.full", full) |> Enum.count |> IO.inspect
+#AdventOfCode.Day19.PartOne.process("input/day19.full", full) |> Enum.count |> IO.inspect
+AdventOfCode.Day19.PartTwo.process("input/day19.full", full)
